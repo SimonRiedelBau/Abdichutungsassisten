@@ -180,6 +180,32 @@ header{width:100%;max-width:700px;display:flex;align-items:center;gap:14px;margi
 .legend-dot{width:12px;height:12px;border-radius:3px;flex-shrink:0;}
 .detail-maße{font-size:.75rem;color:var(--muted);margin-top:10px;padding:8px 12px;
   background:rgba(58,200,122,.05);border:1px solid rgba(58,200,122,.15);border-radius:7px;line-height:1.8;}
+
+/* ── Literatur / DBV ── */
+.lit-block{background:var(--surface);border:1px solid rgba(180,100,240,.3);border-radius:var(--radius);overflow:hidden;}
+.lit-head{padding:12px 18px;border-bottom:1px solid rgba(180,100,240,.2);font-size:.68rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:.1em;color:#c080ff;background:rgba(180,100,240,.07);
+  display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;}
+.lit-badge{background:rgba(180,100,240,.15);color:#c080ff;border:1px solid rgba(180,100,240,.28);
+  border-radius:20px;font-size:.66rem;font-weight:700;padding:2px 8px;}
+.lit-toggle{font-size:.75rem;color:var(--muted);}
+.lit-body{padding:14px 18px;display:flex;flex-direction:column;gap:10px;}
+.lit-section{display:flex;flex-direction:column;gap:6px;}
+.lit-section-title{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:2px;}
+.lit-item{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;
+  background:var(--surface2);border-radius:8px;border-left:3px solid rgba(180,100,240,.4);}
+.lit-item.norm{border-left-color:rgba(74,158,240,.5);}
+.lit-item.dbv {border-left-color:rgba(180,100,240,.5);}
+.lit-item.fach{border-left-color:rgba(58,200,122,.4);}
+.lit-icon{font-size:1rem;flex-shrink:0;margin-top:1px;}
+.lit-content{}
+.lit-name{font-weight:600;font-size:.85rem;color:var(--text);line-height:1.3;}
+.lit-detail{font-size:.75rem;color:var(--muted);margin-top:3px;line-height:1.5;}
+.lit-tag{display:inline-block;font-size:.62rem;font-weight:700;padding:1px 6px;border-radius:4px;
+  margin-top:4px;text-transform:uppercase;letter-spacing:.05em;}
+.lit-tag.kapitel{background:rgba(74,158,240,.15);color:#70b8ff;}
+.lit-tag.inhalt {background:rgba(58,200,122,.15);color:#4ed68a;}
+.lit-tag.bezug  {background:rgba(232,162,58,.15);color:#f0b450;}
 </style>
 </head>
 <body>
@@ -1131,6 +1157,7 @@ function renderResult(){
         '<div class="section-body check-list">'+chk+'</div>'+
         '<div class="norm-row"><span>📖</span>'+r.norm+'</div></div>'+
       stlbHtml+
+      renderLitBlock(key)+
       renderDetailBlock(key)+
       '<div class="result-footer">'+
         '<button class="back-btn" onclick="goBack()">← Zurück</button>'+
@@ -2398,6 +2425,374 @@ function renderSVG(detailKey, tabIdx) {
   if (d && d.svg && d.svg[tabIdx] && wrap) {
     wrap.innerHTML = d.svg[tabIdx]();
   }
+}
+
+
+// ═══════════════════════════════════════════════════════════════════════════
+// LITERATUR & NORMEN DATENBANK
+// ═══════════════════════════════════════════════════════════════════════════
+var LIT = {
+
+  // ── Gemeinsame Basis-Normen (immer relevant) ─────────────────────────────
+  "_basis": {
+    normen: [
+      {name:"DIN 18533-1:2017-07", detail:"Abdichtung erdberührter Bauteile – Anforderungen, Planung, Ausführung", kapitel:"§4 Allg. Anforderungen, §5 Wassereinwirkungsklassen, §6 Details", bezug:"Grundlagennorm für alle Erdreich-Abdichtungen"},
+    ],
+    dbv: [],
+    fach: []
+  },
+
+  // ── W1.1-E / W1.2-E WAND ─────────────────────────────────────────────────
+  "erde|wand|W1.1-E": {
+    normen: [
+      {name:"DIN 18533-1:2017-07", detail:"Anforderungen, Planung, Ausführung erdberührter Abdichtungen", kapitel:"§5.2 W1.1-E, §6.1 Ausführungsregeln", bezug:"Lastfall Bodenfeuchte, Systemwahl PMBC"},
+      {name:"DIN 18533-2:2017-07", detail:"Abdichtung mit bahnenförmigen Abdichtungsstoffen", kapitel:"§4.2 PMBC, Tab.1 Schichtdicken W1.1-E", bezug:"Mindestschichtdicken, Lagenanzahl"},
+      {name:"DIN 18533-3:2017-07", detail:"Abdichtung mit flüssig zu verarbeitenden Abdichtungsstoffen", kapitel:"§4 MDS-Systeme", bezug:"Mineralische Dichtungsschlämme als Alternative"},
+    ],
+    dbv: [
+      {name:"DBV-Merkblatt „Bodenplatten" (2016)", detail:"Konstruktionsregeln für Bodenplatten, Fugenabstände, Schwindrissminimierung", kapitel:"Abschn. 5: Abdichtungsanschlüsse, Abschn. 6: Fugen", bezug:"Anschluss Sohle/Wand, Fugenausbildung"},
+      {name:"DBV-Merkblatt „Betoninstandsetzung" (RiLi SIB)", detail:"Schadensklassen, Instandsetzungsprinzipien, Produktklassen", kapitel:"P1–P4: Schutz und Prävention", bezug:"Untergrundvorbereitung vor PMBC-Auftrag"},
+    ],
+    fach: [
+      {name:"Zentralverband des Deutschen Baugewerbes (ZDB)", detail:"Merkblatt Abdichtungen im Verbund – Hinweise zur Ausführung", kapitel:"Abschn. 3: Erdberührte Abdichtungen", bezug:"Praktische Ausführungshinweise, Mängelbilder"},
+      {name:"Schomburg / Remmers / Sika – Systemunterlagen PMBC", detail:"Herstellerspezifische Verarbeitungsrichtlinien, CE-Kennzeichnung, Systemzulassungen", kapitel:"Technische Datenblätter, Verarbeitungsanleitungen", bezug:"Schichtdickennachweis, Primer-Auswahl"},
+    ]
+  },
+
+  "erde|wand|W1.2-E": {
+    normen: [
+      {name:"DIN 18533-1:2017-07", detail:"Anforderungen erdberührter Abdichtungen", kapitel:"§5.3 W1.2-E, §6.3 Anschlüsse Wand/Sohle", bezug:"Lastfall Sickerwasser, Drainage-Anforderungen"},
+      {name:"DIN 18533-2:2017-07", detail:"Bahnenförmige Abdichtungsstoffe", kapitel:"§4.2 PMBC mit Einlage, Tab.2 W1.2-E", bezug:"Gewebeeinlage Pflicht, Schichtdicken"},
+      {name:"DIN 4095:1990-06", detail:"Dränung zum Schutz baulicher Anlagen", kapitel:"Abschn. 5: Planung, Abschn. 6: Ausführung", bezug:"Drainage-Anforderungen bei W1.2-E zwingend"},
+    ],
+    dbv: [
+      {name:"DBV-Merkblatt „Bodenplatten" (2016)", detail:"Fugenabstände, Abdichtungsanschlüsse", kapitel:"Abschn. 5–6", bezug:"Wand-Sohle-Anschluss, Hohlkehle"},
+      {name:"DBV-Merkblatt „Fugen in Beton" (2020)", detail:"Fugenarten, Fugenbandtypen, Einbauregeln", kapitel:"Abschn. 3: Arbeitsfugen, Abschn. 5: Abdichtung", bezug:"Arbeitsfuge Wand/Sohle mit Quellprofil"},
+    ],
+    fach: [
+      {name:"ZDB-Merkblatt Abdichtungen", detail:"Ausführungshinweise erdberührte Abdichtungen mit Einlage", kapitel:"Abschn. 4: Sickerwasser", bezug:"Gewebeeinlage an Kehlen und Ecken"},
+    ]
+  },
+
+  "erde|wand|W2.1-E": {
+    normen: [
+      {name:"DIN 18533-1:2017-07", detail:"Erdberührte Abdichtungen", kapitel:"§5.4 W2.1-E, §6 Sonderanforderungen Druckwasser", bezug:"Druckwasserlast, Dokumentationspflicht"},
+      {name:"DIN 18533-2:2017-07", detail:"PMBC gewebeverstärkt", kapitel:"§4.3 W2-Systeme, Tab.3 Schichtdicken", bezug:"Vollgewebeverstärkung, Schichtdickenprotokoll"},
+      {name:"DIN 18197:2011-04", detail:"Abdichten von Fugen in Beton mit Fugenbändern", kapitel:"Abschn. 4: Fugenbandtypen, Abschn. 6: Einbau", bezug:"Fugenband / Quellprofil in Arbeitsfugen"},
+    ],
+    dbv: [
+      {name:"DBV-Merkblatt „Wasserundurchlässige Bauwerke aus Beton" – WU-Richtlinie (2017)", detail:"Nutzungsklassen A/B, Anforderungsklassen, Fugenplanung, Rissbreitenbegrenzung", kapitel:"Abschn. 3: Anforderungen, Abschn. 5: Fugen, Abschn. 6: Nachweise", bezug:"Alternative WU-Konzept zu PMBC bei W2.1-E – Weiße Wanne"},
+      {name:"DBV-Merkblatt „Fugen in Beton" (2020)", detail:"Arbeitsfugen, Quellprofile, Fugenbänder, Dehnfugen", kapitel:"Abschn. 3–6", bezug:"Arbeitsfuge Wand/Sohle bei Druckwasser Pflicht"},
+      {name:"DBV-Merkblatt „Früher Zwang" (2011)", detail:"Zwangsbeanspruchung, Mindestbewehrung, Rissbreitenbegrenzung bei jungem Beton", kapitel:"Abschn. 4: Rissbreitennachweis", bezug:"Rissbreitenbegrenzung bei WU-Wand zwingend"},
+    ],
+    fach: [
+      {name:"DAfStb-Richtlinie „Wasserundurchlässige Bauwerke aus Beton" (WU-Richtlinie)", detail:"Ergänzung zur DBV-WU-Richtlinie, Bemessungsgrundlagen", kapitel:"Abschn. 4: Konstruktive Durchbildung", bezug:"Fugenabstände, Bewehrungsplanung WU-Wand"},
+      {name:"Fachbericht: ZVDH-Regelwerk Abdichtungen", detail:"Regeln für Planung und Ausführung von Abdichtungen", kapitel:"Teil 3: Erdberührte Flächen", bezug:"Ausführungsqualität, Prüfung Schichtdicken"},
+    ]
+  },
+
+  "erde|wand|W2.2-E": {
+    normen: [
+      {name:"DIN 18533-1:2017-07", detail:"Erdberührte Abdichtungen – hohe Anforderung", kapitel:"§5.5 W2.2-E, §7 Qualitätssicherung", bezug:"Wannensystem, QSP-Pflicht"},
+      {name:"DIN 18533-2:2017-07", detail:"Bahnenförmige Abdichtungsstoffe W2.2-E", kapitel:"§5 Bahnen-Wannensystem, Tab.4", bezug:"Polymerbitumenbahn 2-lagig vollflächig"},
+      {name:"DIN 18197:2011-04", detail:"Fugenbänder in Beton", kapitel:"Gesamtnorm", bezug:"Alle Fugen bei W2.2-E mit Fugenband"},
+    ],
+    dbv: [
+      {name:"DBV-Merkblatt „Wasserundurchlässige Bauwerke aus Beton" – WU-Richtlinie (2017)", detail:"Vollständige WU-Richtlinie – Nutzungsklassen, Nachweise, Fugen, Konstruktion", kapitel:"KOMPLETT relevant – alle Abschnitte", bezug:"WU-Konzept als Alternative / Ergänzung zur Schwarzen Wanne"},
+      {name:"DBV-Merkblatt „Fugen in Beton" (2020)", detail:"Dehn-, Arbeits- und Sollrissfugen, alle Fugenbandtypen", kapitel:"Abschn. 4: Dehnfugen, Abschn. 5: Abdichtung", bezug:"Fugenausbildung bei hohem Druckwasser kritisch"},
+      {name:"DBV-Merkblatt „Früher Zwang" (2011)", detail:"Rissbreitenbegrenzung, Mindestbewehrung", kapitel:"Gesamtnorm", bezug:"Bei WU-Konzept als Alternative zwingend"},
+    ],
+    fach: [
+      {name:"Planungsleistung LP 5 Abdichtung (HOAI)", detail:"Ausführungsplanung Abdichtung durch Fachplaner", kapitel:"Leistungsphase 5 HOAI §34", bezug:"Bei W2.2-E: Fachplaner LP5 Pflicht vor Ausführung"},
+    ]
+  },
+
+  // ── SOHLE ─────────────────────────────────────────────────────────────────
+  "erde|sohle|W1.1-E": {
+    normen: [
+      {name:"DIN 18533-1:2017-07", detail:"Erdberührte Abdichtungen Sohle", kapitel:"§5.2 W1.1-E, §6.2 Sohle", bezug:"Abdichtung auf Sauberkeitsschicht"},
+      {name:"DIN 18533-2:2017-07", detail:"PMBC / PE-Folie auf Sohle", kapitel:"§4.2 Sohle W1.1-E", bezug:"Schichtdicken, Aufkantung mind. 15cm"},
+    ],
+    dbv: [
+      {name:"DBV-Merkblatt „Bodenplatten" (2016)", detail:"Konstruktionsregeln, Fugenabstände, Schwindrissminimierung, Abdichtungsanschlüsse", kapitel:"Abschn. 3: Sauberkeitsschicht, Abschn. 5: Abdichtung, Abschn. 6: Fugen", bezug:"Hauptreferenz für alle Bodenplatten-Details"},
+    ],
+    fach: [
+      {name:"ZDB-Merkblatt Abdichtungen", detail:"Ausführungshinweise Sockel und Sohle", kapitel:"Abschn. 5: Sohle", bezug:"Aufkantung, Nahtausbildung"},
+    ]
+  },
+
+  "erde|sohle|W2.1-E": {
+    normen: [
+      {name:"DIN 18533-1:2017-07", detail:"Druckwasser Sohle", kapitel:"§5.4 W2.1-E Sohle, §6.4 Auftrieb", bezug:"Auftriebsnachweis Pflicht"},
+      {name:"DIN 18533-2:2017-07", detail:"Schweißbahnen Sohle W2.1-E", kapitel:"§5 Bahnen 2-lagig", bezug:"Vollflächige Verklebung, Lückenschluss"},
+      {name:"DIN EN 1992-1-1", detail:"Eurocode 2 – Tragwerk Stahlbeton", kapitel:"Abschn. 9: Auftrieb und Erddrucklasten", bezug:"Statischer Auftriebsnachweis zwingend"},
+    ],
+    dbv: [
+      {name:"DBV-Merkblatt „Wasserundurchlässige Bauwerke aus Beton" – WU-Richtlinie (2017)", detail:"WU-Konzept als Alternative zu Schwarzer Wanne", kapitel:"Abschn. 3–6", bezug:"Weiße Wanne Sohle bei W2.1-E"},
+      {name:"DBV-Merkblatt „Bodenplatten" (2016)", detail:"Bodenplattendetails, Fugen, Abdichtungsanschlüsse", kapitel:"Abschn. 5–7", bezug:"Fugenplanung, Aufkantung"},
+      {name:"DBV-Merkblatt „Fugen in Beton" (2020)", detail:"Arbeitsfugen, Dehnfugen, Quellprofile", kapitel:"Abschn. 3–6", bezug:"Fugenband bei Druckwasser Pflicht"},
+    ],
+    fach: []
+  },
+
+  "erde|sohle|W2.2-E": {
+    normen: [
+      {name:"DIN 18533-1:2017-07", detail:"Hoher Druckwasser Sohle", kapitel:"§5.5 W2.2-E", bezug:"QSP-Pflicht, Fachplaner"},
+      {name:"DIN 18533-2:2017-07", detail:"Wannensystem Sohle W2.2-E", kapitel:"§5 Schwarz/Weiße Wanne", bezug:"Vollständig geschlossene Wanne"},
+    ],
+    dbv: [
+      {name:"DBV-Merkblatt „Wasserundurchlässige Bauwerke aus Beton" – WU-Richtlinie (2017)", detail:"KOMPLETT – Weiße Wanne, alle Nutzungsklassen und Nachweise", kapitel:"Alle Abschnitte", bezug:"Hauptreferenz für WU-Konzept Sohle W2.2-E"},
+      {name:"DBV-Merkblatt „Früher Zwang" (2011)", detail:"Rissbreitenbegrenzung junge Bodenplatte", kapitel:"Abschn. 3–5", bezug:"Mindestbewehrung gegen frühen Zwang"},
+      {name:"DBV-Merkblatt „Fugen in Beton" (2020)", detail:"Fugenplanung Bodenplatte unter hohem Druck", kapitel:"Abschn. 4–6", bezug:"Dehnfugen, Quellprofile, Fugenbänder"},
+    ],
+    fach: [
+      {name:"Planungsleistung LP 5 Abdichtung (HOAI)", detail:"Fachplaner Abdichtung", kapitel:"HOAI §34", bezug:"Pflicht bei W2.2-E vor Ausführungsbeginn"},
+    ]
+  },
+
+  // ── BEFAHRENE FLÄCHEN ─────────────────────────────────────────────────────
+  "fahren|18532-4": {
+    normen: [
+      {name:"DIN 18532-1:2017-07", detail:"Befahrene Flächen – Grundlagen, Begriffe, Anforderungen", kapitel:"Abschn. 4: Nutzungsklassen N1-V bis N3-V, Abschn. 5: Rissklassen", bezug:"Grundlagennorm für alle befahrenen Abdichtungen"},
+      {name:"DIN 18532-4:2025-06", detail:"Abdichtung mit einer Lage Kunststoff- oder Elastomerbahn", kapitel:"§4: Baustoffe ECB/PVC-P/FPO/EPDM, §5: Ausführung, §6: Unterlaufsicherheit (NEU 2025)", bezug:"Systemwahl, Bauweisen 1a/2a/2b, Unterlaufsicherheit"},
+    ],
+    dbv: [
+      {name:"DBV-Merkblatt „Parkhäuser und Tiefgaragen" (2018)", detail:"Abdichtungssysteme, OS-Klassen, Chloridschutz, Entwässerung, Fugen, Instandhaltung", kapitel:"Abschn. 4: Abdichtung, Abschn. 5: Fugen, Abschn. 7: Entwässerung", bezug:"HAUPTREFERENZ für alle Parkdeck-Abdichtungen"},
+      {name:"DBV-Merkblatt „Fugen in Beton" (2020)", detail:"Fugenplanung Parkdeck, Dehnfugenprofile", kapitel:"Abschn. 4: Dehnfugen befahrene Flächen", bezug:"Druckwasserdichte Dehnfugenprofile"},
+    ],
+    fach: [
+      {name:"ZTV-ING Teil 3, Abschnitt 4", detail:"Zusätzliche Technische Vertragsbedingungen – Ingenieurbauwerke", kapitel:"Abschn. 4.3: Abdichtungen befahrene Flächen", bezug:"Technische Anforderungen bei Brücken und Parkdecks"},
+    ]
+  },
+
+  "fahren|18532-5": {
+    normen: [
+      {name:"DIN 18532-1:2017-07", detail:"Grundlagen befahrene Flächen", kapitel:"Abschn. 4–5", bezug:"Nutzungsklassen, Rissklassen"},
+      {name:"DIN 18532-5:2025-06", detail:"Verbundsystem Polymerbitumenbahn + Kunststoffbahn", kapitel:"§4: Baustoffe, §5: Untergrundbehandlung (NEU), §6: Rautiefenausgleich (NEU)", bezug:"Systemaufbau, Untergrundvorbereitung 2025 präzisiert"},
+    ],
+    dbv: [
+      {name:"DBV-Merkblatt „Parkhäuser und Tiefgaragen" (2018)", detail:"Abdichtungssysteme TG-Decken, Fugen, Entwässerung", kapitel:"Abschn. 4–7", bezug:"HAUPTREFERENZ – Systemwahl, Ausführungsqualität"},
+      {name:"DBV-Merkblatt „Fugen in Beton" (2020)", detail:"Fugenplanung, Dehnfugenprofile", kapitel:"Abschn. 4–5", bezug:"Druckwasserdichte Dehnfugen"},
+    ],
+    fach: [
+      {name:"ZTV-ING Teil 3, Abschnitt 4", detail:"Technische Anforderungen befahrene Abdichtungen", kapitel:"Abschn. 4.3–4.5", bezug:"Qualitätssicherung, Schichtdickennachweis"},
+    ]
+  },
+
+  "fahren|18532-6": {
+    normen: [
+      {name:"DIN 18532-1:2017-07", detail:"Grundlagen befahrene Flächen", kapitel:"Abschn. 4–5", bezug:"Nutzungsklassen N1-V bis N3-V"},
+      {name:"DIN 18532-6:2025-06", detail:"Flüssig zu verarbeitende Abdichtungsstoffe FLK / OS-Systeme", kapitel:"§4: OS 10/11a/11b (OS 8 gestrichen!), §5: Untergrund, §6: Ausführung", bezug:"Systemvarianten OS 10/11a/11b, Änderungen 2025"},
+      {name:"DIN 28052:2022-03", detail:"Schutz und Instandsetzung von Betonbauteilen – OS-Systeme", kapitel:"Tab.1: OS-Systemklassen, Abschn. 5: Prüfung", bezug:"OS 11b Zulassung, Schichtdickennachweis"},
+    ],
+    dbv: [
+      {name:"DBV-Merkblatt „Parkhäuser und Tiefgaragen" (2018)", detail:"OS-Systeme, Chloridschutz, Rissüberbrückung, Fugen, Entwässerung, Instandhaltung", kapitel:"KOMPLETT – alle Abschnitte", bezug:"HAUPTREFERENZ für FLK/OS-Systeme auf Parkdecks"},
+      {name:"DBV-Merkblatt „Betoninstandsetzung"", detail:"Untergrundvorbereitung, Rissinjektion vor OS-Auftrag", kapitel:"P1–P4: Schutz, P5: Rissbehandlung", bezug:"Untergrundvorbereitung vor OS-Systemauftrag"},
+    ],
+    fach: [
+      {name:"ZTV-ING Teil 3, Abschnitt 4", detail:"Qualitätssicherung OS-Systeme", kapitel:"Abschn. 4.3: Prüfung, Protokolle", bezug:"Schichtdickenprotokoll, Haftungsnachweis"},
+      {name:"BÜV-Empfehlung OS-Systeme (Bundesgütegemeinschaft)", detail:"Überwachung und Prüfung OS-Systeme auf Parkdecks", kapitel:"Gesamtdokument", bezug:"Qualitätssicherung, Systemzulassungen"},
+    ]
+  },
+
+  // ── FLACHDACH ─────────────────────────────────────────────────────────────
+  "dach|warm_nb|bitumen": {
+    normen: [
+      {name:"DIN 18531-1:2017-07", detail:"Dachabdichtungen – Grundlagen, Anforderungen, Planung", kapitel:"§5: Gefälle, §6: Anschlüsse, §7: Prüfung", bezug:"Grundlagennorm alle Flachdächer"},
+      {name:"DIN 18531-2:2017-07", detail:"Abdichtung mit bahnenförmigen Bitumenstoffen", kapitel:"§4: Baustoffe PYE/PYP, §5: Ausführung 2-lagig", bezug:"Polymerbitumenbahnen, Lagenzahl, Stöße"},
+    ],
+    dbv: [],
+    fach: [
+      {name:"Flachdachrichtlinie (FDR) 2023 – ZVDH", detail:"Regeln für Planung und Ausführung von Flachdächern", kapitel:"Abschn. 3: Warmdach, Abschn. 7: Anschlüsse, Abschn. 9: Entwässerung", bezug:"HAUPTREFERENZ für alle Flachdach-Ausführungen"},
+      {name:"ZVDH-Merkblatt Dachabdichtungen", detail:"Ausführungsdetails, Mängelvermeidung", kapitel:"Abschn. 5: Bitumenbahnen", bezug:"Praktische Ausführungshinweise"},
+    ]
+  },
+
+  "dach|gruen|bitumen": {
+    normen: [
+      {name:"DIN 18531-1:2017-07", detail:"Dachabdichtungen Grundlagen", kapitel:"§6.5: Begrünte Dächer", bezug:"Anforderungen Abdichtung unter Gründach"},
+      {name:"DIN 18531-2:2017-07", detail:"Bitumenbahnen wurzelfest", kapitel:"§4.4: Wurzelfestigkeit, Tab.3", bezug:"Wurzelfestigkeitsnachweis FLL"},
+    ],
+    dbv: [],
+    fach: [
+      {name:"FLL-Richtlinie „Dachbegrünung" (2018)", detail:"Planung, Bau und Instandhaltung von Dachbegrünungen", kapitel:"Abschn. 4: Abdichtung, Abschn. 5: Schichtaufbau, Abschn. 6: Wurzelfestigkeit", bezug:"HAUPTREFERENZ – Wurzelfestigkeit, Systemnachweis, Aufbau"},
+      {name:"Flachdachrichtlinie (FDR) 2023 – ZVDH", detail:"Flachdach mit Begrünung", kapitel:"Abschn. 8: Begrünte Dächer", bezug:"Abdichtung + Aufbau + Entwässerung"},
+    ]
+  },
+
+  // ── INNENRAUM / NASSBEREICH ───────────────────────────────────────────────
+  "innen|A1|maeba": {
+    normen: [
+      {name:"DIN 18534-1:2017-07", detail:"Abdichtung von Innenräumen – Grundlagen, Beanspruchungsklassen", kapitel:"§4: Beanspruchungsklassen A0–A3, §5: Planung", bezug:"Einordnung A1, Systemwahl"},
+      {name:"DIN 18534-4:2017-07", detail:"Abdichtung im Verbund mit Fliesen und Platten (MÄBA)", kapitel:"§4: Systemaufbau, §5: Ausführung, §6: Anschlüsse", bezug:"MÄBA-System, Dichtband, Ausführungsregeln"},
+    ],
+    dbv: [],
+    fach: [
+      {name:"ZDB-Merkblatt „Verbundabdichtungen" (2012)", detail:"MÄBA-Systeme im Innenraum – Planung und Ausführung", kapitel:"Abschn. 3: Beanspruchungsklassen, Abschn. 5: Ausführung", bezug:"HAUPTREFERENZ für MÄBA-Systeme A1/A2"},
+    ]
+  },
+
+  "innen|A2|maeba": {
+    normen: [
+      {name:"DIN 18534-1:2017-07", detail:"Innenraumabdichtungen", kapitel:"§4.3: Beanspruchungsklasse A2", bezug:"Dauernde Wasserbelastung, erhöhte Anforderung"},
+      {name:"DIN 18534-4:2017-07", detail:"MÄBA Verbundabdichtung", kapitel:"§5: Ausführung A2, §6.3: Dichtband A2 Pflicht", bezug:"Dichtband an allen Kehlen Pflicht bei A2"},
+    ],
+    dbv: [],
+    fach: [
+      {name:"ZDB-Merkblatt „Verbundabdichtungen" (2012)", detail:"MÄBA A2 – Duschen, dauernd nasse Bereiche", kapitel:"Abschn. 5.2: A2-Ausführung, Abschn. 6: Anschlüsse", bezug:"HAUPTREFERENZ – Dichtband, Formteile, Ablauf"},
+      {name:"DIN EN 14891:2017", detail:"Flüssig zu verarbeitende wasserundurchlässige Produkte im Verbund mit Fliesen", kapitel:"Gesamtnorm – Prüfverfahren, Leistungsklassen", bezug:"CE-Kennzeichnung MÄBA-Produkte"},
+    ]
+  },
+
+  "innen|A3|fluessig": {
+    normen: [
+      {name:"DIN 18534-1:2017-07", detail:"Innenraumabdichtungen Beckenbau", kapitel:"§4.4: Beanspruchungsklasse A3 – Dauerbeflutung", bezug:"Höchste Anforderung, Fachplaner empfohlen"},
+      {name:"DIN 18534-3:2017-07", detail:"Flüssigabdichtung FLK im Innenraum", kapitel:"§4: FLK-Systeme A3, §5: Schichtdicken", bezug:"EP/PU-Systeme druckwasserfest"},
+    ],
+    dbv: [
+      {name:"DBV-Merkblatt „Schwimmbäder" (2013)", detail:"Konstruktionsdetails, Abdichtungsanforderungen, Fugenausbildung, chemische Beständigkeit, Trinkwasserkontakt", kapitel:"Abschn. 3: Abdichtung, Abschn. 4: Fugen, Abschn. 5: Materialien", bezug:"HAUPTREFERENZ für Beckenbau und Schwimmbäder"},
+    ],
+    fach: [
+      {name:"DIN 19643: Aufbereitung von Schwimm- und Badebeckenwasser", detail:"Wasserqualität, chemische Anforderungen an Beschichtungen", kapitel:"Teil 1: Allgemeine Anforderungen", bezug:"Chemische Beständigkeit Abdichtung gegen Badewasserchemikalien"},
+    ]
+  },
+
+  // ── BEHÄLTER ─────────────────────────────────────────────────────────────
+  "behaelter|trink|mineral": {
+    normen: [
+      {name:"DIN 18535-1:2017-07", detail:"Abdichtung von Behältern – Grundlagen, Anforderungsklassen", kapitel:"§4: Anforderungsklassen, §5: Trinkwasser-Anforderungen", bezug:"Anforderungsklasse, Trinkwasserverträglichkeit"},
+      {name:"DIN 18535-2:2017-07", detail:"Zementgebundene Abdichtungsstoffe KS/MDS", kapitel:"§4: Materialien, §5: Ausführung Trinkwasser", bezug:"KS-Beschichtung trinkwasserverträglich"},
+    ],
+    dbv: [],
+    fach: [
+      {name:"KTW-Leitlinie (Umweltbundesamt UBA) – aktuelle Fassung", detail:"Beurteilung der Eignung von Kunststoffen und anderen organischen Materialien im Kontakt mit Trinkwasser", kapitel:"Positivliste: zugelassene Materialien für Trinkwasserkontakt", bezug:"PFLICHT – Systemzulassung KTW vor Einbau prüfen"},
+      {name:"DVGW-Arbeitsblatt W 347", detail:"Hygienische Anforderungen an zementgebundene Werkstoffe im Trinkwasserbereich", kapitel:"Gesamtnorm", bezug:"Zementgebundene Abdichtungen für Trinkwasserbehälter"},
+      {name:"DVGW-Arbeitsblatt W 300", detail:"Wasserspeicherung – Planung, Bau, Betrieb und Instandhaltung", kapitel:"Abschn. 5: Innenbeschichtungen", bezug:"Betrieb und Inspektion Trinkwasserbehälter"},
+    ]
+  },
+
+  "behaelter|abwasser|kunst": {
+    normen: [
+      {name:"DIN 18535-1:2017-07", detail:"Abdichtung Behälter – Abwasser", kapitel:"§4: Anforderungsklassen Abwasser", bezug:"Chemische Beständigkeit, Anforderungsklasse"},
+      {name:"DIN 18535-3:2017-07", detail:"Kunststoffbeschichtungen EP/PU", kapitel:"§4: Materialien, §5: Ausführung", bezug:"Chemisch beständige Beschichtungssysteme"},
+      {name:"DIN EN 1610:2015-12", detail:"Einbau und Prüfung von Abwasserleitungen", kapitel:"Abschn. 10: Dichtheitsprüfung", bezug:"Wasserdruckprüfung nach Einbau"},
+    ],
+    dbv: [],
+    fach: [
+      {name:"ATV-DVWK-M 143 (DWA-M 143)", detail:"Sanierung von Entwässerungssystemen außerhalb von Gebäuden", kapitel:"Teil 3: Beschichtungen und Auskleidungen", bezug:"Chemisch beständige Beschichtungen Abwasserbauwerke"},
+      {name:"DWA-M 168", detail:"Korrosion von Abwasseranlagen – Grundlagen, Untersuchungen, Abhilfemaßnahmen", kapitel:"Gesamtnorm", bezug:"Beständigkeitsnachweis gegen Abwasserinhaltsstoffe"},
+    ]
+  },
+
+  "behaelter|industrie|kunst": {
+    normen: [
+      {name:"DIN 18535-1:2017-07", detail:"Abdichtung Industriebehälter", kapitel:"§4: höchste Anforderungsklasse", bezug:"Chemisch und thermisch hochbeansprucht"},
+      {name:"DIN 18535-3:2017-07", detail:"Kunststoffbeschichtungen für Industriebehälter", kapitel:"§4: EP/PU/Vinyl, §5: Schichtdicken", bezug:"Vinylester/EP für höchste Beanspruchung"},
+    ],
+    dbv: [],
+    fach: [
+      {name:"DIN EN ISO 12944: Korrosionsschutz von Stahlbauten durch Beschichtungssysteme", detail:"Korrosivitätskategorien, Schutzdauerklassen, Beschichtungssysteme", kapitel:"Teil 2: Klassifizierung, Teil 5: Beschichtungssysteme", bezug:"Beständigkeitsklassen und Schichtdicken Industriebeschichtungen"},
+      {name:"Beständigkeitstabellen Hersteller (z.B. Wacker, Sika, BASF)", detail:"Chemische Beständigkeit der Beschichtungssysteme gegen Lagermedien", kapitel:"Beständigkeitslisten je Produkt", bezug:"Pflicht: Beständigkeit gegen konkrete Lagerflüssigkeit prüfen"},
+    ]
+  },
+
+  // ── SOCKEL / DURCHDRINGUNG ────────────────────────────────────────────────
+  "erde|sockel|kurz": {
+    normen: [
+      {name:"DIN 18533-1:2017-07", detail:"Sockelabdichtung W4-E", kapitel:"§4.4: Sockel, Spritzwasserzone", bezug:"Mindesthöhe 30cm über GOK"},
+      {name:"DIN 18533-2:2017-07", detail:"PMBC Sockel", kapitel:"§4.2 W4-E", bezug:"Systemanforderungen Sockelzone"},
+    ],
+    dbv: [],
+    fach: [
+      {name:"Flachdachrichtlinie FDR 2023 – ZVDH (Sockelanschlüsse)", detail:"Sockelanschlüsse, Abtropfkanten", kapitel:"Abschn. 7.3: Wandanschlüsse und Sockel", bezug:"Abtropfkante, Abschlussblech, Sockelhöhe"},
+    ]
+  },
+
+  "erde|durchdringung|rohr": {
+    normen: [
+      {name:"DIN 18533-1:2017-07", detail:"Durchdringungen", kapitel:"§6.1: Rohrdurchdringungen, Flanschanschlüsse", bezug:"Systemzulassung Flansch, Mindestabstände"},
+    ],
+    dbv: [],
+    fach: [
+      {name:"Systemunterlagen Flanschhersteller (z.B. Doyma, Hauff-Technik, Roxtec)", detail:"Systemzulassungen für Rohrdurchdringungen", kapitel:"Technische Datenblätter, Einbauanleitungen", bezug:"Systemkonformer Flansch – gleicher Hersteller wie PMBC-System"},
+    ]
+  },
+
+  "erde|durchdringung|tuer": {
+    normen: [
+      {name:"DIN 18533-1:2017-07", detail:"Tür-/Fensteranschlüsse", kapitel:"§6.5: Anschlüsse an Tür- und Fensterrahmen", bezug:"Mindestüberstand 15cm, Anschlussband"},
+    ],
+    dbv: [],
+    fach: [
+      {name:"Herstellerunterlagen Anschlussprofile (z.B. Schomburg, Remmers, tremco illbruck)", detail:"Systemkonforme Anschlussprofile und -bänder", kapitel:"Technische Datenblätter, Detailzeichnungen", bezug:"Systemkonformer Anschluss – gleicher Systemgeber wie Fläche"},
+    ]
+  },
+
+};
+
+// ── Literatur-Rendering ────────────────────────────────────────────────────
+function getLitData(resultKey) {
+  return LIT[resultKey] || null;
+}
+
+function renderLitBlock(resultKey) {
+  var data = getLitData(resultKey);
+  if (!data) return "";
+
+  var hasContent = (data.normen && data.normen.length) ||
+                   (data.dbv   && data.dbv.length)    ||
+                   (data.fach  && data.fach.length);
+  if (!hasContent) return "";
+
+  function renderItems(items, cls, icon) {
+    if (!items || !items.length) return "";
+    var s = "";
+    for (var i=0; i<items.length; i++) {
+      var it = items[i];
+      s += '<div class="lit-item '+cls+'">'+
+        '<div class="lit-icon">'+icon+'</div>'+
+        '<div class="lit-content">'+
+          '<div class="lit-name">'+it.name+'</div>'+
+          '<div class="lit-detail">'+it.detail+'</div>'+
+          '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px">'+
+            '<span class="lit-tag kapitel">📖 '+it.kapitel+'</span>'+
+            '<span class="lit-tag bezug">→ '+it.bezug+'</span>'+
+          '</div>'+
+        '</div>'+
+      '</div>';
+    }
+    return s;
+  }
+
+  var normHtml = renderItems(data.normen, "norm", "📐");
+  var dbvHtml  = renderItems(data.dbv,    "dbv",  "📘");
+  var fachHtml = renderItems(data.fach,   "fach", "📗");
+
+  var body = '<div class="lit-body">';
+  if (normHtml) body += '<div class="lit-section"><div class="lit-section-title">Normen</div>'+normHtml+'</div>';
+  if (dbvHtml)  body += '<div class="lit-section"><div class="lit-section-title">DBV-Merkblätter</div>'+dbvHtml+'</div>';
+  if (fachHtml) body += '<div class="lit-section"><div class="lit-section-title">Fachliteratur & Regelwerke</div>'+fachHtml+'</div>';
+  body += '</div>';
+
+  return '<div class="lit-block">'+
+    '<div class="lit-head" onclick="toggleLit()">'+
+      '<div style="display:flex;align-items:center;gap:8px">'+
+        '<span>📚 Normen & Literatur</span>'+
+        '<span class="lit-badge">DBV · DIN · Fachregeln</span>'+
+      '</div>'+
+      '<span class="lit-toggle" id="litToggle">▼ Anzeigen</span>'+
+    '</div>'+
+    '<div id="litBody" style="display:none">'+body+'</div>'+
+  '</div>';
+}
+
+function toggleLit() {
+  var b = document.getElementById("litBody");
+  var t = document.getElementById("litToggle");
+  if (!b) return;
+  var open = b.style.display !== "none";
+  b.style.display = open ? "none" : "block";
+  t.textContent = open ? "▼ Anzeigen" : "▲ Ausblenden";
 }
 
 render();
